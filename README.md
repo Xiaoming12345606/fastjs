@@ -1,14 +1,13 @@
 # Fastjs
 
-[![](https://fastjs.com.cn/img/star/)](https://gitee.com/dy-xiaodong/fastjs/stargazers)
-![](http://fastjs.com.cn/img/license.svg)
-![](https://fastjs.com.cn/img/gitee.svg)
-![](https://fastjs.com.cn/img/npm.svg)
-![](https://fastjs.com.cn/img/download.svg)
-![](https://fastjs.com.cn/img/jquery.svg)
-![](https://fastjs.com.cn/img/support-vue2.svg)
-![](https://fastjs.com.cn/img/support-vue3.svg)
-![](https://fastjs.com.cn/img/support-react.svg)
+[![](https://img.shields.io/badge/dynamic/json?color=%23c82f35&label=Gitee&query=stargazers_count&suffix=%20stars&url=https%3A%2F%2Fgitee.com%2Fapi%2Fv5%2Frepos%2Ffastjs-team%2Ffastjs)](https://gitee.com/dy-xiaodong/fastjs/stargazers)
+![](https://img.shields.io/badge/license-MIT-purple)
+![](https://img.shields.io/badge/Github-dy--xiaodong2022-green)
+![](https://img.shields.io/badge/npm-v1.2.3-blue)
+![](https://img.shields.io/badge/download-3500+-blueviolet)
+![](https://img.shields.io/badge/support-vue2-success)
+![](https://img.shields.io/badge/support-vue3-success)
+![](https://img.shields.io/badge/support-react-success)
 
 #### Description
 
