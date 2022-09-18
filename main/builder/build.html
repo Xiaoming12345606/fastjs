@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <title>Fastjs Builder</title>
+    <link rel="stylesheet/less" type="text/css" href="./style.less"/>
+    <script src="./less@4.js" type="text/javascript"></script>
+    <script src="./fastjs@1.2.0.js" type="text/javascript"></script>
+</head>
+<body>
+<!--   Fastjs Builder --- Support by fastjs team   -->
+<!--   Fastjs Builder --- New Version - Tree Shaking + Code compression + Safe Mode  -->
+<div id="box">
+    <h3>Fastjs Builder</h3>
+    <div class="fastjs-upload">
+        <div class="upload flex">
+            <span>Upload Fastjs:&nbsp;</span>
+            <button id="fs_up">Select a file...</button>
+            <input type="file" id="fastjs" onchange="upload.fastjs(this)" hidden/>
+        </div>
+        <div id="fastjs-config">
+            <h4>Safety Mode</h4>
+            <div id="safety_list">
+                Please upload fastjs file first
+            </div>
+            <div class="flex">
+                <h4>Tree Shaking</h4>
+                <span id="shake-select">Select All</span>
+                <span id="shake-cancel" hidden>Select None</span>
+            </div>
+            <div id="shaking-list">
+                <div id="shake_main">Please upload fastjs file first</div>
+                <div id="shake_plugin"></div>
+            </div>
+        </div>
+        <span>Fastjs version:&nbsp;<span id="fs_ver">waiting...</span></span><br/>
+        <span>File size:&nbsp;<span id="fs_sz">0.00 kb</span></span><br/>
+        <span>Expect After build size:&nbsp;<span id="fs_bd_sz">0.00 kb</span></span><br/>
+        <span>Status:&nbsp;<span id="fs_st">waiting upload</span></span>
+    </div>
+    <div class="plugin-upload">
+        <div class="upload flex">
+            <span>Upload Plugin:&nbsp;</span>
+            <button id="pg_up" onclick="document.getElementById(`plugin`).click()">Select a file...</button>
+            <input type="file" id="plugin" onchange="upload.plugin(this)" hidden/><br/>
+        </div>
+        <div id="pg-list">
+            <span id="non-upload">No plugin upload</span>
+            <div id="list-inside"></div>
+        </div>
+        <span>Plugins number:&nbsp;<span id="pg-qt">0</span></span><br/>
+        <span>Plugins size:&nbsp;<span id="pg-sz">0.00 kb</span></span>
+    </div>
+    <button id="build" status="error" notAllow>Build Fastjs</button>
+</div>
+<span class="info">Builder Version: 1.1.0</span>
+<span class="info right">Support By DY_XiaoDong(Fastjs-Team)</span>
+</body>
+<script about="html-setup">
+    $("#fs_up").on("click", () => $("#fastjs").click()).$("#pg_up").on("click", () => $(`#plugin`).click())
+</script>
+<script>
+    var error = new Proxy({
+        fastjs: true,
+        network: true,
+        building: false
+    }, {
+        set: (target, key, value) => {
+            target[key] = value
+            let error = false
+            target.toArray().each(e => error = error ? true : e[1])
+            if (error) $("#build").attr("status", "error").attr("notAllow", "").on("click")
+            else $("#build").attr("status", null).attr("notAllow", null).on("click", build)
+        }
+    })
+    // Check Conn
+    let conn = Message.load("Connecting to server", false).then(() => new ajax("https://fastjs.com.cn/conn.php").set("callback", () => conn().then(() => error.network = false)).set("failed", () => { conn();Message.error("No Internet connection <a href='javascript:location.reload()'>Retry</a>", false) }).get(), 1000)
+</script>
+<script about="upload">
+    var success = null
+    var plugin_list = []
+    var file = {
+        fastjs: "",
+        fastjs_build: "",
+        version: "",
+    }
+    var upload = {
+        fastjs(el) {
+            this.read(el, text => {
+                try {
+                    $("#fs_sz").text(kb(text.length))
+                    $("#fs_ver").text("loading...")
+                    $("#fs_bd_sz").text("loading...")
+                    $("#fs_st").text("loading...")
+                    let version = text.match(/Fastjs Token \? -- < v[0-9.]+ > -- \? Fastjs Token/g)[0]
+                        .match(/[0-9.]+/)[0]
+                    let msg = Message.load("Waiting server response", false)
+                    $("#fs_up").attr("status", "success").text("Change a file").$("#fs_st").text("success")
+                        .$("#fs_ver").text(`v${version}`).$("#fs_bd_sz").text("loading...")
+                        .then(() => new ajax("https://fastjs.com.cn/soft.php", {data: text}, result => $("#fs_bd_sz").text(kb(result.data.length)).then(msg).then(() => error.fastjs = false), () => $("#fs_bd_sz").text("error").then(msg).then(() => {let err = Message.error(`Send a request to server failed <a onclick="upload.fastjs($('#fastjs'))">Retry</a>`)}), 10000).post())
+                    file.fastjs = text
+                    code = text
+                    file.version = version
+                    let safety_list = []
+                    text.match(/Safety List: \[["A-Za-z0-9\-_, ]+]/g)[0].push("", '"').push("", '[').push("", ']').substr(13).split(",").each(e => safety_list.push(e.push("", " ")))
+                    $("#safety_list").html("")
+                    safety_list.each(e => $("#safety_list").then(() => new dom("div", ".safety-item").attr("mode", e).html(`<input type="checkbox" id="${e}" /><span class="name">${e} Safety Mode</span>`).push("#safety_list")))
+                    if (version === "1.1.0") {
+                        $("#shake_main").text("This version does not support tree shaking")
+                    } else {
+                        let shaking_list = []
+                        text.match(/Shaking List: \[["A-Za-z0-9\-_, ]+]/g)[0].push("", '"').push("", '[').push("", ']').substr(14).split(",").each(e => shaking_list.push(e.push("", " ")))
+                        $("#shake_main").html("")
+                        shaking_list.each(e => $("#shake_main").then(() => new dom("div", ".shaking-item").attr("mode", e).html(`<input type="checkbox" id="${e}" /><span class="name">${e} Tree Shaking</span>`).push("#shake_main")))
+                    }
+                    $("#shake-select").on("click", () => {
+                        $("#shaking-list").next("input").each(el => el.set("checked", true)).$("#shake-select").hide().$("#shake-cancel").show()
+                    }).$("#shake-cancel").on("click", () => {
+                        $("#shaking-list").next("input").each(el => el.set("checked", false)).$("#shake-cancel").hide().$("#shake-select").show()
+                    })
+                    $("#shaking-list").next("input").each(el => el.on("click", () => {
+                        let all = true
+                        $("#shaking-list").next("input").each(el => all = all ? el.checked : false)
+                        if (all) $("#shake-select").hide().$("#shake-cancel").show()
+                        else $("#shake-cancel").hide().$("#shake-select").show()
+                    }))
+                } catch (e) {
+                    Message.warning("Can't scan this file, please upload fastjs main file", true)
+                            .then(() => $("#fs_ver").text("error").$("#fs_st").text("unknown file").$("#fs_up").attr("status", "error")).then(() => error.fastjs = true)
+                    return console.error(e)
+                }
+            })
+        },
+        plugin(el) {
+            this.read(el, text => {
+                let name = $("#plugin").val().match(/[A-Za-z0-9.]+fs\.js/g)
+                if (!name)
+                    return Message.warning("Can't scan this file, please upload fastjs plugin file", true)
+                if (plugin_list.map(item => item.name).search(name[0]) !== false) return Message.warning("This plugin has been uploaded", true)
+                plugin_list.push({name: name[0], text: text})
+                $("#list-inside").html("")
+                $("#non-upload").hidden = true;
+                let t = text.match(/Shaking List: \[["A-Za-z0-9\-_, ]+]/g)
+                if (t) {
+                    let shaking_list = []
+                    t = t[0].push("", '"').push("", '[').push("", ']').substr(14).split(",").each(e => shaking_list.push(e.push("", " ")))
+                    shaking_list.each(e => $("#shake_plugin").then(() => new dom("div", ".shaking-item").attr("plugin", name).attr("mode", e).html(`<input type="checkbox" id="${e}" /><span class="name"><span style="color: #38f038">[${name}]</span> ${e} Tree Shaking</span>`).push("#shake_plugin")))
+                    $("#shake-cancel").hide().$("#shake-select").show().then(() => {
+                    $("#shaking-list").next("input").each(el => el.on("click", () => {
+                        let all = true
+                        $("#shaking-list").next("input").each(el => all = all ? el.checked : false)
+                        if (all) $("#shake-select").hide().$("#shake-cancel").show()
+                        else $("#shake-cancel").hide().$("#shake-select").show()
+                    }))})
+                }
+                plugin_list.each((e, key) => new dom("div").html(`<span class="name">${e.name}</span><span class="size">${kb(e.text.length)}</span><span class="delete">Delete</span>`).addClass("pg_item").push("#list-inside").next("span.delete")[0].on("click", el => {
+                    plugin_list.delete(plugin_list.map(e => e.name).search(el.father().next(".name")[0].text())).then(() => el.father().remove())
+                    if (plugin_list.length === 0) $("#non-upload").hidden = false
+                    $("#pg-qt").text(plugin_list.length).$("#pg-sz").text(kb(plugin_list.map(e => e.text.length).reduce((a, b) => a + b, 0)))
+                    $("#shake_plugin").next("input").each(el => {
+                        if (el.father().attr("plugin") === e.name) el.father().remove()
+                    })
+                    let all = true
+                    $("#shaking-list").next("input").each(el => all = all ? el.checked : false)
+                    if (all) $("#shake-select").hide().$("#shake-cancel").show()
+                    else $("#shake-cancel").hide().$("#shake-select").show()
+                    if (!plugin_list.length) $("#non-upload").set("hidden", false).$("list-inside").set("hidden", true)
+                }))
+                $("#pg-qt").text(plugin_list.length).$("#pg-sz").text(kb(plugin_list.map(e => e.text.length).reduce((a, b) => a + b, 0)))
+            })
+        },
+        read(el, func) {
+            var reader = new FileReader()
+            reader.readAsText(el.files[0], "UTF-8")
+            reader.onload = function (e) {
+                func(e.target.result)
+            }
+        }
+    }
+</script>
+<script about="build">
+    function build() {
+        if (error.building) return
+        error.building = true
+        if (success) {
+            success()
+            success = null
+        }
+        let code = file.fastjs
+        plugin_list.each(e => code += "\n" + e.text)
+        // Safety Mode
+        let msg = Message.load("Running Safety Mode", false)
+        let safety_list_disabled = []
+        let safety_list_enabled = []
+        $(".safety-item").each(e => {
+            if (e.next("input")[0].checked) safety_list_enabled.push(e.attr("mode"))
+            else safety_list_disabled.push(e.attr("mode"))
+        })
+        safety_list_disabled.each(name => {
+                code = code.replace(new RegExp(`\\/\\* -!- ${name} safety mode start -!- \\*\\/[^]+?\\/\\* -!- ${name} safety mode end -!- \\*\\/`, "g"), "")
+        })
+        safety_list_enabled.each(name => {
+                code = code.replace(new RegExp(`\\/\\* --- ${name} safety mode start --- \\*\\/[^]+?\\/\\* --- ${name} safety mode end --- \\*\\/`, "g"), "")
+        })
+        "Safety Mode Finish".then(() => {
+            // Tree Shaking
+            msg()
+            msg = Message.load("Running Tree Shaking", false)
+            code = code.replaceAll(new RegExp(/\/\* __dev__ \*\/[^]+?\/\* __dev__ \*\//, "g"), "")
+            let shaking_list = []
+            $(".shaking-item").each(e => {
+                if (e.next("input")[0].checked) shaking_list.push({name: e.attr("mode"), plugin: e.attr("plugin")})
+            })
+            shaking_list.each(item => {
+                item.plugin = item.plugin ? " " + item.plugin : ""
+                if (item.name === "Error-Output") {
+                    code = code.replaceAll(/fastjs\.throwSmallError([^\r\n]+)/g, "0")
+                    code = code.replaceAll(/fastjs\.throwError([^\r\n]+)/g, "0")
+                    code = code.replaceAll(/fastjs\.throwSeriousError([^\r\n]+)/g, "0")
+                    code = code.replaceAll(/fastjs\.throwCrashError([^\r\n]+)/g, "0")
+                } else if (name === "Quality-Output") {
+                    code = code.replaceAll(/fastjs\.loqualityOutputg([^\r\n]+)/g, "0")
+                }
+                let shake = true
+                if (shake) {
+                    let temp
+                    temp = code.match(new RegExp(`\\[Tree-Shaking${item.plugin}] ${item.name} IF-TRUE \\*\\/[a-z]+`.log(), "g"))
+                    if (temp) {
+                        shake = eval(temp[0].match(/\*\/[a-z]+/g)[0].substr(2))
+                    }
+                    temp = code.match(new RegExp(`\\[Tree-Shaking${item.plugin}] ${item.name} IF-FALSE \\*\\/[a-z]+\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} IF-FALSE \\*\\/`.log(), "g"))
+                    if (temp) {
+                        shake = !eval(temp[0].match(/\*\/[a-z]+/g)[0].substr(2))
+                    }
+                }
+                if (shake) {
+                    let cut = code.match(new RegExp(`\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} CUT start \\*\\/[^]+?\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} CUT end \\*\\/`, "g"))
+                    if (cut) {
+                        cut = cut[0].match(/\*\/[^\\/*]+/g)[0].substr(2)
+                        code = code.replaceAll(new RegExp(`\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} PASTE \\*\\/`.log(), "g"), cut)
+                    }
+                    code = code.replace(new RegExp(`\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} DELETE start \\*\\/[^]+?\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} DELETE end \\*\\/`.log(), "g"), "")
+                } else {
+                    code = code.replace(new RegExp(`\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} UNDELETE start \\*\\/[^]+?\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} UNDELETE end \\*\\/`.log(), "g"), "")
+                }
+                    code = code.replace(new RegExp(`\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} CLEAR start \\*\\/[^]+?\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} CLEAR end \\*\\/`.log(), "g"), "")
+                code = code.replace(new RegExp(`\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} IF-FALSE \\*\\/[a-z]+`.log(), "g"), "").replace(new RegExp(`\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} IF-TRUE \\*\\/[a-z]+\\/\\* \\[Tree-Shaking${item.plugin}] ${item.name} IF-TRUE \\*\\/`.log(), "g"), "")
+            })
+            "Tree Shaking Finish".then(() => {
+                // Build Fastjs
+                msg()
+                msg = Message.load("Building Fastjs", false)
+                error.building = false
+                new ajax("https://fastjs.com.cn/soft.php", {data: code.log()}, result => {
+                    msg().then(() => success = Message.success(`Build success, <a onclick="down('fastjs-${file.version}.min.js', file.fastjs_build)">Download</a>`, true))
+                    error.building = false
+                    result.data = `/* Fastjs v${file.version} | (c) 2021-2022 dy-xiaodong (Fastjs Team) | MIT License */\n` + result.data
+                    file.fastjs_build = result.data
+                }, () => {
+                    msg().then(() => Message.error("Build failed, please try again", true))
+                    error.building = false
+                }, 10000).post()
+                }, 1850)
+        }, 1850)
+    }
+</script>
+<script about="down">
+    function down(name, data) {
+        var urlObject = window.URL || window.webkitURL || window;
+        var export_blob = new Blob([data]);
+        var save_link = document.createElementNS("http://www.w3.org/1999/xhtml", "a")
+        save_link.href = urlObject.createObjectURL(export_blob);
+        save_link.download = name;
+        var ev = document.createEvent("MouseEvents");
+        ev.initMouseEvent("click", true, false, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+        save_link.dispatchEvent(ev);
+    }
+</script>
+<script about="function">
+    function kb(length) {
+        let kb = String(length / 1024);
+        kb = kb.match(/[0-9]+.?[0-9]{0,2}/g)[0]
+        kb = kb === "0.00" ? "0.01" : kb
+        if (Number(kb) >= 100) {
+            kb = kb.substr(0, kb.length - 3)
+        }
+        if (Number(kb) >= 100000) {
+            let mb = Number(kb) / 1024
+            mb = String(mb).match(/^[0-9]+/g)[0]
+            return `${mb} mb`
+        }
+        return `${kb} kb`;
+    }
+</script>
+</html>

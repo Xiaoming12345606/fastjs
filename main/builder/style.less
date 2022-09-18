@@ -1,0 +1,170 @@
+body {
+    background: #2d2d2d;
+    margin: 0;
+}
+
+#box {
+    padding: 20px;
+    margin: 8px;
+}
+
+h3 {
+    margin: 0;
+    color: white;
+}
+
+button {
+    background: white;
+    border: none;
+    width: 130px;
+    height: 30px;
+    cursor: pointer;
+    transition: 0.6s;
+    margin-top: 50px;
+}
+
+button:hover {
+    background: #9a9a9a;
+}
+
+button[status=error] {
+    color: #c9c9c9;
+    background: #ff7474;
+}
+
+button[notAllow] {
+    cursor: not-allowed;
+}
+
+button[status=error]:hover {
+    color: #ffffff;
+    background: #ff2d2d;
+}
+
+button[status=success] {
+    background: #1aef56;
+    color: white;
+}
+
+button[status=success]:hover {
+    background: #98ffbb;
+}
+
+.fastjs-upload, .plugin-upload {
+    width: 400px;
+    padding: 20px;
+    border: 1px solid #a0a0a0;
+    margin-top: 40px;
+
+    .flex {
+        display: flex;
+    }
+
+    .upload {
+        margin-bottom: 10px;
+        line-height: 24px;
+    }
+
+    span {
+        color: white;
+        font-size: 13px;
+    }
+
+    button {
+        height: 24px;
+        margin: 0;
+    }
+
+    #pg-list, #fastjs-config {
+        color: white;
+        border: 1px solid white;
+        padding: 8px 8px 8px 10px;
+        font-size: 12px;
+        margin-top: 5px;
+        margin-bottom: 5px;
+        display: block !important;
+
+        #safety_list {
+            margin-bottom: 8px;
+            .safety-item {
+                margin-top: 5px;
+                .name {
+                    font-size: 12px;
+                }
+            }
+        }
+
+        #shake-select, #shake-cancel {
+            margin-left: 8px;
+            color: rgb(104, 175, 255);
+            text-decoration-line: underline;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        #shaking-list {
+            .shaking-item {
+                margin-top: 5px;
+                .name {
+                    font-size: 12px;
+                }
+            }
+        }
+
+        h4 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 3px;
+        }
+
+        #list-inside .pg_item {
+            display: flex;
+
+            .name {
+                display: inline-block;
+                width: 250px;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                white-space: nowrap;
+                padding-right: 10px;
+            }
+
+            .size {
+                display: inline-block;
+                overflow: hidden;
+                width: 65px;
+            }
+
+            .delete {
+                display: inline-block;
+                color: red;
+                cursor: pointer;
+                user-select: none;
+                margin-left: 10px;
+                overflow: hidden;
+            }
+        }
+
+    }
+}
+
+.info {
+    color: white;
+    font-size: 12px;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    padding: 5px 8px;
+    background: #2d2d2d;
+    opacity: 0.3;
+}
+
+.right {
+    left: auto;
+    right: 0;
+}
+
+input[type=checkbox] {
+    margin: 0 6px 0 0;
+}
