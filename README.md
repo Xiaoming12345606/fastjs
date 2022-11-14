@@ -9,6 +9,10 @@
 ![](https://img.shields.io/badge/support-vue3-success)
 ![](https://img.shields.io/badge/support-react-success)
 
+## Warning
+
+This repository is read-only before v2.0.0 publish.
+
 #### Description
 
 Fastjs is a powerful, fast and small JavaScript Frame. It is designed to be easy to use, and it is very easy to learn. Fastjs can use with many frame, like vue, react, angular.
